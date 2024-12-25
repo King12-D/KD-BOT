@@ -1,17 +1,36 @@
 const qrcode = require('qrcode-terminal');
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client } = require('whatsapp-web.js');
 const { OWNER_NAME } = require('./config');
 const commands = require('./commands');
 const { handleAntiLink, handleMutedUser } = require('./messageHandlers');
+const http = require('http');
 
 let antiLinkEnabled = false;
 let mutedUsers = new Set();
 
 const client = new Client({
-    authStrategy: new LocalAuth()
+    puppeteer: {
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+        ],
+        headless: true
+    }
 });
 
+const server = http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end('WhatsApp Bot is running!');
+});
+server.listen(3000);
+
 client.on('qr', (qr) => {
+    console.log('QR RECEIVED', qr);
     qrcode.generate(qr, { small: true });
 });
 
